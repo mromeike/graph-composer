@@ -1,0 +1,6 @@
+{
+  "main": "bin/graph-composer",
+  "output": "build/graph-composer.phar",
+  "chmod": "0700",
+  "git-version": "git_version_placeholder"
+}
