@@ -6,6 +6,7 @@ use Fhaculty\Graph\Graph;
 use Fhaculty\Graph\Attribute\AttributeAware;
 use Fhaculty\Graph\Attribute\AttributeBagNamespaced;
 use Graphp\GraphViz\GraphViz;
+use JMS\Composer\DependencyAnalyzer;
 
 class GraphComposer
 {
@@ -37,32 +38,31 @@ class GraphComposer
      */
     private $graphviz;
 
-    /**
-     *
-     * @param string $dir
-     * @param GraphViz|null $graphviz
-     */
-    public function __construct($dir, GraphViz $graphviz = null)
+    public function __construct(string $dir, ?GraphViz $graphviz = null)
     {
         if ($graphviz === null) {
             $graphviz = new GraphViz();
             $graphviz->setFormat('svg');
         }
-        $analyzer = new \JMS\Composer\DependencyAnalyzer();
+
+        $analyzer = new DependencyAnalyzer();
+
         $this->dependencyGraph = $analyzer->analyze($dir);
         $this->graphviz = $graphviz;
     }
 
     /**
-     *
-     * @param string $dir
-     * @return \Fhaculty\Graph\Graph
+     * @return Graph
      */
-    public function createGraph()
+    public function createGraph(?callable $filter = null)
     {
         $graph = new Graph();
 
         foreach ($this->dependencyGraph->getPackages() as $package) {
+            if (\is_callable($filter) && !$filter($this->dependencyGraph, $package, null)) {
+                continue;
+            }
+
             $name = $package->getName();
             $start = $graph->createVertex($name, true);
 
@@ -74,6 +74,10 @@ class GraphComposer
             $this->setLayout($start, array('label' => $label) + $this->layoutVertex);
 
             foreach ($package->getOutEdges() as $requires) {
+                if (\is_callable($filter) && !$filter($this->dependencyGraph, $package, $requires)) {
+                    continue;
+                }
+
                 $targetName = $requires->getDestPackage()->getName();
                 $target = $graph->createVertex($targetName, true);
 
@@ -91,9 +95,23 @@ class GraphComposer
         $root = $graph->getVertex($this->dependencyGraph->getRootPackage()->getName());
         $this->setLayout($root, $this->layoutVertexRoot);
 
+        if (\is_callable($filter)) {
+            $unassignedVertices = $graph->getVertices()
+                ->getVerticesMatch(static function ($vertex): bool {
+                    return 0 === \count($vertex->getEdges());
+                });
+
+            foreach ($unassignedVertices as $vertex) {
+                $graph->removeVertex($vertex);
+            }
+        }
+
         return $graph;
     }
 
+    /**
+     * @return AttributeAware
+     */
     private function setLayout(AttributeAware $entity, array $layout)
     {
         $bag = new AttributeBagNamespaced($entity->getAttributeBag(), 'graphviz.');
@@ -102,20 +120,29 @@ class GraphComposer
         return $entity;
     }
 
-    public function displayGraph()
+    /**
+     * @return void
+     */
+    public function displayGraph(?callable $filter = null)
     {
-        $graph = $this->createGraph();
+        $graph = $this->createGraph($filter);
 
         $this->graphviz->display($graph);
     }
 
-    public function getImagePath()
+    /**
+     * @return string
+     */
+    public function getImagePath(?callable $filter = null)
     {
-        $graph = $this->createGraph();
+        $graph = $this->createGraph($filter);
 
         return $this->graphviz->createImageFile($graph);
     }
 
+    /**
+     * @return static
+     */
     public function setFormat($format)
     {
         $this->graphviz->setFormat($format);

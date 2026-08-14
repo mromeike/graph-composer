@@ -11,22 +11,27 @@ use Clue\GraphComposer\Graph\GraphComposer;
 
 class Export extends Command
 {
-    protected function configure()
+    use FilterTrait;
+
+    protected function configure(): void
     {
         $this->setName('export')
-             ->setDescription('Export dependency graph image for given project directory')
-             ->addArgument('dir', InputArgument::OPTIONAL, 'Path to project directory to scan', '.')
-             ->addArgument('output', InputArgument::OPTIONAL, 'Path to output image file')
+            ->setDescription('Export dependency graph image for given project directory')
+            ->addArgument('dir', InputArgument::OPTIONAL, 'Path to project directory to scan', '.')
+            ->addArgument('output', InputArgument::OPTIONAL, 'Path to output image file')
 
-             // add output format option. default value MUST NOT be given, because default is to overwrite with output extension
-             ->addOption('format', null, InputOption::VALUE_REQUIRED, 'Image format (svg, png, jpeg)'/*, 'svg'*/)
+            // add output format option. default value MUST NOT be given, because default is to overwrite with output extension
+            ->addOption('format', null, InputOption::VALUE_REQUIRED, 'Image format (svg, png, jpeg)', 'svg')
 
-           /*->addOption('dev', null, InputOption::VALUE_NONE, 'If set, Whether require-dev dependencies should be shown') */;
+            ->addOption('filter', 'f', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Package filter pattern')
+            ->addOption('level', null, InputOption::VALUE_REQUIRED, 'Package filter level')
+
+            ->addOption('dev', null, InputOption::VALUE_NONE | InputOption::VALUE_NEGATABLE, 'Whether require-dev dependencies should be shown');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $graph = new GraphComposer($input->getArgument('dir'));
+        $graph = new GraphComposer($input->getArgument('dir'), null);
 
         $target = $input->getArgument('output');
         if ($target !== null) {
@@ -47,7 +52,9 @@ class Export extends Command
             $graph->setFormat($format);
         }
 
-        $path = $graph->getImagePath();
+        $path = $graph->getImagePath(
+            $this->createFilter($input, $output)
+        );
 
         if ($target !== null) {
             rename($path, $target);
@@ -55,6 +62,6 @@ class Export extends Command
             readfile($path);
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 }
