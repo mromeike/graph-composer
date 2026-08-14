@@ -1,4 +1,7 @@
-/build/
-/composer.lock
-/graph-composer-*.phar
+/.idea/
+
 /vendor/
+/composer.lock
+
+/box.json
+graph-composer-*.phar
