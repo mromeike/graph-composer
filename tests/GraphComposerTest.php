@@ -78,7 +78,7 @@ class GraphComposerTest extends TestCase
 
         $this->assertInstanceOf('Fhaculty\Graph\Graph', $graph);
         $this->assertTrue(count($graph->getVertices()) > 0);
-        // if not filtered, symfony/filesystem would be available and phpunit/phpunit is dev
+        // if not filtered, symfony/string would be available and phpunit/phpunit is dev
         $this->assertFalse($graph->hasVertex('symfony/string'));
         $this->assertFalse($graph->hasVertex('phpunit/phpunit'));
         // root package is always available
@@ -100,9 +100,32 @@ class GraphComposerTest extends TestCase
 
         $this->assertInstanceOf('Fhaculty\Graph\Graph', $graph);
         $this->assertTrue(count($graph->getVertices()) > 0);
-        // if not filtered, symfony/filesystem would be available and phpunit/phpunit is dev
+        // if not filtered, symfony/string would be available and phpunit/phpunit is dev
         $this->assertFalse($graph->hasVertex('symfony/string'));
         $this->assertTrue($graph->hasVertex('phpunit/phpunit'));
+        // root package is always available
+        $this->assertTrue($graph->hasVertex('clue/graph-composer'));
+    }
+
+    public function testFilterDevStrictGraph()
+    {
+        $dir = __DIR__ . '/../';
+
+        $filter = (new PackageFilterFunctionFactory)
+            ->getFilter([
+                '--filter' => ['clue/graph-composer', 'symfony/console'],
+                '--dev' => true,
+                '--strict-filter' => true,
+            ], new Export);
+
+        $graphComposer = new GraphComposer($dir);
+        $graph = $graphComposer->createGraph($filter);
+
+        $this->assertInstanceOf('Fhaculty\Graph\Graph', $graph);
+        $this->assertTrue(count($graph->getVertices()) > 0);
+        // if not filtered, symfony/string would be available and phpunit/phpunit is dev
+        $this->assertFalse($graph->hasVertex('symfony/string'));
+        $this->assertfalse($graph->hasVertex('phpunit/phpunit'));
         // root package is always available
         $this->assertTrue($graph->hasVertex('clue/graph-composer'));
     }

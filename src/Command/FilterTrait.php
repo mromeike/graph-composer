@@ -20,11 +20,13 @@ trait FilterTrait
         $filters = (array)$input->getOption('filter');
         $level = \max(0, (int)$input->getOption('level'));
         $withDevPackages = (bool)$input->getOption('dev');
+        $strict = (bool)$input->getOption('strict-filter') && !empty($filters);
 
-        return function (DependencyGraph $graph, PackageNode $package, ?DependencyEdge $requires) use ($filters, $level, $withDevPackages, $output): bool {
+        return function (DependencyGraph $graph, PackageNode $package, ?DependencyEdge $requires) use ($filters, $level, $withDevPackages, $strict, $output): bool {
             // Filter the dependency edges only.
             if ($requires instanceof DependencyEdge) {
                 return (!$requires->isDevDependency() || $withDevPackages)
+                    && (!$strict || $this->matchFilter($graph, $requires->getDestPackage(), $filters))
                     && (
                         $this->matchFilter($graph, $package, $filters)
                         || $this->matchLevel($graph, $package, $level)

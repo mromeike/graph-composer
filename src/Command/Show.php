@@ -21,9 +21,11 @@ class Show extends Command
             ->addOption('format', null, InputOption::VALUE_REQUIRED, 'Image format (svg, png, jpeg)', 'svg')
 
             ->addOption('filter', 'f', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Package filter pattern')
+            ->addOption('strict-filter', null, InputOption::VALUE_NONE, 'Whether to filter dependency edges too')
             ->addOption('level', null, InputOption::VALUE_REQUIRED, 'Package filter level')
 
-            ->addOption('dev', null, InputOption::VALUE_NONE | InputOption::VALUE_NEGATABLE, 'Whether require-dev dependencies should be shown');
+            ->addOption('dev', null, InputOption::VALUE_NONE | InputOption::VALUE_NEGATABLE, 'Whether require-dev dependencies should be shown')
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
