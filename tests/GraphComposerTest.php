@@ -1,14 +1,10 @@
 <?php
 
-use Clue\GraphComposer\Command\Export;
-use Clue\GraphComposer\Command\FilterTrait;
+use Clue\GraphComposer\Graph\Filter;
 use Clue\GraphComposer\Graph\GraphComposer;
 use Fhaculty\Graph\Graph;
 use Graphp\GraphViz\GraphViz;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\NullOutput;
 
 class GraphVizMockDisplay extends GraphViz
 {
@@ -37,19 +33,6 @@ class GraphVizMockSetFormat extends GraphViz
     }
 }
 
-class PackageFilterFunctionFactory
-{
-    use FilterTrait;
-
-    public function getFilter(array $params, Command $cmd): callable
-    {
-        return $this->createFilter(
-            new ArrayInput($params, $cmd->getDefinition()),
-            new NullOutput(),
-        );
-    }
-}
-
 class GraphComposerTest extends TestCase
 {
     public function testCreateGraph()
@@ -67,11 +50,7 @@ class GraphComposerTest extends TestCase
     {
         $dir = __DIR__ . '/../';
 
-        $filter = (new PackageFilterFunctionFactory)
-            ->getFilter([
-                '--filter' => 'clue/graph-composer',
-                '--no-dev' => true,
-            ], new Export);
+        $filter = Filter::createFilter(['clue/graph-composer'], 0, false);
 
         $graphComposer = new GraphComposer($dir);
         $graph = $graphComposer->createGraph($filter);
@@ -89,11 +68,7 @@ class GraphComposerTest extends TestCase
     {
         $dir = __DIR__ . '/../';
 
-        $filter = (new PackageFilterFunctionFactory)
-            ->getFilter([
-                '--filter' => 'clue/graph-composer',
-                '--dev' => true,
-            ], new Export);
+        $filter = Filter::createFilter(['clue/graph-composer']);
 
         $graphComposer = new GraphComposer($dir);
         $graph = $graphComposer->createGraph($filter);
@@ -111,12 +86,7 @@ class GraphComposerTest extends TestCase
     {
         $dir = __DIR__ . '/../';
 
-        $filter = (new PackageFilterFunctionFactory)
-            ->getFilter([
-                '--filter' => ['clue/graph-composer', 'symfony/console'],
-                '--dev' => true,
-                '--strict-filter' => true,
-            ], new Export);
+        $filter = Filter::createFilter(['clue/graph-composer', 'symfony/console'], 0, true, true);
 
         $graphComposer = new GraphComposer($dir);
         $graph = $graphComposer->createGraph($filter);

@@ -2,12 +2,12 @@
 
 namespace Clue\GraphComposer\Command;
 
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Clue\GraphComposer\Graph\GraphComposer;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class Export extends Command
 {
@@ -21,7 +21,7 @@ class Export extends Command
             ->addArgument('output', InputArgument::OPTIONAL, 'Path to output image file')
 
             // add output format option. default value MUST NOT be given, because default is to overwrite with output extension
-            ->addOption('format', null, InputOption::VALUE_REQUIRED, 'Image format (svg, png, jpeg)', 'svg')
+            ->addOption('format', null, InputOption::VALUE_REQUIRED, 'Image format (svg, png, jpeg)')
 
             ->addOption('filter', 'f', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Package filter pattern')
             ->addOption('strict-filter', null, InputOption::VALUE_NONE, 'Whether to filter dependency edges too')
