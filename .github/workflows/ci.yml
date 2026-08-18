@@ -11,6 +11,7 @@ jobs:
     strategy:
       matrix:
         php:
+          - 8.4
           - 8.3
           - 8.2
           - 8.1
@@ -36,6 +37,8 @@ jobs:
       - run: vendor/bin/phpunit --coverage-text -c phpunit.xml.legacy
         if: ${{ matrix.php < 7.3 }}
       - run: composer build
+      - run: composer require symfony/console:^7.0 --dry-run --working-dir=tests/install-as-dep
+        if: ${{ matrix.php >= 8.1 }}
       - run: composer require symfony/console:^6.0 --dry-run --working-dir=tests/install-as-dep
         if: ${{ matrix.php >= 8.0 }}
       - run: composer require symfony/console:^5.0 --dry-run --working-dir=tests/install-as-dep
