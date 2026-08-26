@@ -18,7 +18,7 @@ class App extends BaseApplication
     {
         // Since PHP-Scoper relies on COMPOSER_ROOT_VERSION the version parsed by PackageVersions, we rely on Box
         // placeholders in order to get the right version for the PHAR.
-        if (\str_starts_with(__FILE__, 'phar:')) {
+        if (0 === \strpos(__FILE__, 'phar:')) {
             return '@git_version_placeholder@';
         }
 

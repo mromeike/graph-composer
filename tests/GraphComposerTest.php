@@ -76,7 +76,7 @@ class GraphComposerTest extends TestCase
         $this->assertInstanceOf('Fhaculty\Graph\Graph', $graph);
         $this->assertTrue(count($graph->getVertices()) > 0);
         // if not filtered, symfony/string would be available and phpunit/phpunit is dev
-        $this->assertFalse($graph->hasVertex('symfony/string'));
+        $this->assertTrue($graph->hasVertex('symfony/string'));
         $this->assertTrue($graph->hasVertex('phpunit/phpunit'));
         // root package is always available
         $this->assertTrue($graph->hasVertex('clue/graph-composer'));

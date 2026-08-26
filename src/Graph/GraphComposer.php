@@ -2,11 +2,11 @@
 
 namespace Clue\GraphComposer\Graph;
 
+use Clue\GraphComposer\Composer\LevelAwareDependencyAnalyzer;
 use Fhaculty\Graph\Graph;
 use Fhaculty\Graph\Attribute\AttributeAware;
 use Fhaculty\Graph\Attribute\AttributeBagNamespaced;
 use Graphp\GraphViz\GraphViz;
-use JMS\Composer\DependencyAnalyzer;
 
 class GraphComposer
 {
@@ -45,7 +45,8 @@ class GraphComposer
             $graphviz->setFormat('svg');
         }
 
-        $analyzer = new DependencyAnalyzer();
+        // Use custom implementation to support levels:
+        $analyzer = new LevelAwareDependencyAnalyzer();
 
         $this->dependencyGraph = $analyzer->analyze($dir);
         $this->graphviz = $graphviz;

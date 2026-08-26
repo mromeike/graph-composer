@@ -17,18 +17,35 @@ class Filter
      */
     public static function createFilter(array $filters, int $level = 0, bool $withDevPackages = true, bool $strict = false): callable
     {
-        return function (DependencyGraph $graph, PackageNode $package, ?DependencyEdge $requires) use ($filters, $level, $withDevPackages, $strict): bool {
+        return function (DependencyGraph $graph, PackageNode $package, ?DependencyEdge $requires) use ($filters, $level, $withDevPackages, $strict): bool
+        {
+            $isDevDependency = $package->hasAttribute('isDevDependency')
+                && (bool) $package->getAttribute('isDevDependency');
+
             // Filter the dependency edges only.
             if ($requires instanceof DependencyEdge) {
-                return (!$requires->isDevDependency() || $withDevPackages)
+                $isDevDependency = $requires->getDestPackage()
+                        ->hasAttribute('isDevDependency')
+                    && (bool)$requires->getDestPackage()
+                        ->getAttribute('isDevDependency');
+
+                $use = (!$isDevDependency || $withDevPackages)
                     && (!$strict || static::matchFilter($graph, $requires->getDestPackage(), $filters))
                     && (
-                        static::matchFilter($graph, $package, $filters)
-                        || static::matchLevel($graph, $package, $level)
+                        static::matchLevel($graph, $package, $level)
+                        || static::matchFilter($graph, $package, $filters)
                     );
             } else {
-                $use = static::matchFilter($graph, $package, $filters)
-                    || static::matchLevel($graph, $package, $level);
+                // Always keep the root package.
+                if ($graph->getRootPackage()->getName() === $package->getName()) {
+                    return true;
+                }
+
+                $use = (!$isDevDependency || $withDevPackages)
+                    && (
+                        static::matchLevel($graph, $package, $level)
+                        || static::matchFilter($graph, $package, $filters)
+                    );
             }
 
             return $use;
@@ -51,15 +68,18 @@ class Filter
             }
         }
 
-        return false;
+        return empty($filters);
     }
 
     protected static function matchLevel(DependencyGraph $graph, PackageNode $package, int $level): bool
     {
+        if (0 === $level) {
+            return true;
+        }
+
         // Filter the package level (unsupported).
-        if (0 < $level && $package->hasAttribute('level')) {
-            // TODO: Use correct attribute (or inject as attribute).
-            return $level < $package->getAttribute('level');
+        if ($package->hasAttribute('level')) {
+            return $level > (int) $package->getAttribute('level');
         }
 
         return false;
